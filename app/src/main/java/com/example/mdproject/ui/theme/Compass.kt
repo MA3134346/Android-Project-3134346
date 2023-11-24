@@ -11,11 +11,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -24,12 +27,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import com.example.mdproject.R
 
 @Preview(showBackground = true)
 @Composable
 fun Compass() {
-    val rot = rotation()
+    var useTrueNorth by remember { mutableStateOf(true) }
+    val rot = if (useTrueNorth) rotationToTrueNorth() else rotationToTarget()
     Column(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.SpaceBetween
@@ -41,7 +46,12 @@ fun Compass() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            CompassTarget("North")
+            CompassTarget(if (useTrueNorth) "North" else "Target")
+            Switch(
+                checked = useTrueNorth,
+                onCheckedChange = { useTrueNorth = it },
+                modifier = Modifier.padding(8.dp)
+            )
         }
         Row(
             modifier = Modifier
@@ -61,6 +71,11 @@ fun Compass() {
             CompassSprite(rot)
         }
     }
+}
+
+fun rotationToTarget(): Float {
+
+    return 0.0f
 }
 
 @Composable
@@ -84,7 +99,7 @@ fun CompassSprite(rotation: Float) {
 }
 
 @Composable
-fun rotation(): Float {
+fun rotationToTrueNorth(): Float {
     var rot by remember { mutableFloatStateOf(0f) }
 
     val sensorManager: SensorManager = LocalContext.current.getSystemService(Context.SENSOR_SERVICE) as SensorManager

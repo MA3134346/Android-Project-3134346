@@ -9,14 +9,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 
 @Composable
-fun Level(){
+fun Map(){
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center){
-        Text(text = "Level")
+        Text(text = "Map")
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun LevelPreview(){
-    Level()
+    Map()
 }

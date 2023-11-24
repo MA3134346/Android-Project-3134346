@@ -143,4 +143,3 @@ fun AddDialog(waypoints: SnapshotStateList<WayPoint>, onDismiss: () -> Unit) {
 fun GPSPreview(){
     GPS()
 }
-
