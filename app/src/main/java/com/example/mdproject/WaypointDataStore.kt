@@ -10,7 +10,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
-
+/*
 data class WayPoint(var name: String, var longitude: Double, var latitude: Double, var group: String)
 
 class WaypointDataStore(private val context: Context) {
@@ -47,3 +47,4 @@ class WaypointDataStore(private val context: Context) {
     }
 }
 
+*/
