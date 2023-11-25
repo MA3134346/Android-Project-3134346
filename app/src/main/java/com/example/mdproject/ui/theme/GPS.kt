@@ -118,6 +118,15 @@ fun GPS() {
                                 text = { Text("Delete") }
                             )
                         }
+                        if (showDeleteDialog) {
+                            DeleteDialog(
+                                onConfirm = {
+                                    WayPointManager.deleteWayPoint(item)
+                                    showDeleteDialog = false
+                                },
+                                onDismiss = { showDeleteDialog = false }
+                            )
+                        }
                     }
                 }
                 Divider()
@@ -148,6 +157,7 @@ fun GPS() {
     if (showAddDialog) {
         AddDialog() { showAddDialog = false }
     }
+
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -189,6 +199,23 @@ fun AddDialog(onDismiss: () -> Unit) {
             { Text("OK") }
         },
         dismissButton = { Button(onClick = onDismiss) { Text("Cancel") }
+        }
+    )
+}
+@Composable
+fun DeleteDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Delete Waypoint") },
+        text = { Text("you sure?") },
+        confirmButton = {
+            Button(onClick = onConfirm) { Text("Yes") }
+        },
+        dismissButton = {
+            Button(onClick = onDismiss) { Text("No") }
         }
     )
 }
