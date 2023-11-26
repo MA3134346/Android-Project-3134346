@@ -1,7 +1,8 @@
-package com.example.mdproject.ui.theme
+package com.example.mdproject
 
 import android.location.Location
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,9 +15,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ExposedDropdownMenuBox
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -40,8 +45,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.mdproject.WayPoint
-import com.example.mdproject.WayPointManager
 
 
 @Composable
@@ -78,24 +81,15 @@ fun GPS() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // waypoints name
-                    Column(
-                        modifier = Modifier.weight(1f)
-                    ) {
+                    Column(modifier = Modifier.weight(1f)) {
                         Text(text = item.name)
                     }
                     // waypoints group
-                    Column(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 16.dp)
-                    ) {
+                    Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
                         Text(text = item.group)
                     }
                     //button for each of the entries
-                    Box {
-                        IconButton(
-                            onClick = { showMenu = !showMenu }
-                        ) {
+                    Box { IconButton(onClick = { showMenu = !showMenu }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                         }
                         //to select either delete or edit
@@ -139,6 +133,7 @@ fun GPS() {
             item = waypoint,
             onDismiss = { editingItem = null },
             onConfirm = { oldName, updatedWaypoint ->
+                //when confirm in the edit dialog is clicked update waypoint
                 WayPointManager.updateWaypoint(oldName, updatedWaypoint)
                 editingItem = null
             }
@@ -159,6 +154,7 @@ fun GPS() {
     }
 
 }
+//dialog when adding new waypoint
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddDialog(onDismiss: () -> Unit) {
@@ -187,6 +183,7 @@ fun AddDialog(onDismiss: () -> Unit) {
             Button(
                 onClick = {
                     if (name.isNotEmpty()) {
+                        //add new waypoint to the waypoint managers list
                         WayPointManager.addWaypoint(WayPoint(
                             name,
                             Location(name).apply { latitude = 37.7749; longitude = -122.4194 },
@@ -202,6 +199,7 @@ fun AddDialog(onDismiss: () -> Unit) {
         }
     )
 }
+//dialog when deleting item to make sure
 @Composable
 fun DeleteDialog(
     onConfirm: () -> Unit,
@@ -219,23 +217,20 @@ fun DeleteDialog(
         }
     )
 }
-@OptIn(ExperimentalMaterial3Api::class)
+//dialog when editing item
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
-fun EditDialog(
-    item: WayPoint,
-    onDismiss: () -> Unit,
-    onConfirm: (String, WayPoint) -> Unit
-) {
+fun EditDialog(item: WayPoint, onDismiss: () -> Unit, onConfirm: (String, WayPoint) -> Unit) {
     var newName by remember { mutableStateOf(item.name) }
     var newGroup by remember { mutableStateOf(item.group) }
     var newLong by remember { mutableDoubleStateOf(item.location.longitude) }
     var newLat by remember { mutableDoubleStateOf(item.location.latitude) }
     var oldName = remember { item.name }
+    val groups = WayPointManager.groups
+    var groupSelectExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text(text = "Edit Waypoint") },
-        text = {
+        onDismissRequest = onDismiss, title = { Text(text = "Edit Waypoint") }, text = {
             Column {
                 TextField(
                     value = newName,
@@ -243,11 +238,37 @@ fun EditDialog(
                     label = { Text("Name") }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = newGroup,
-                    onValueChange = { newGroup = it },
-                    label = { Text("Group") }
-                )
+                ExposedDropdownMenuBox(
+                    expanded = groupSelectExpanded,
+                    onExpandedChange = {groupSelectExpanded = !groupSelectExpanded})
+                {
+                    TextField(
+                        value = newGroup,
+                        onValueChange = { newGroup = it },
+                        label = { Text("Group") },
+                        trailingIcon = {
+                            Icon(
+                                imageVector = if (groupSelectExpanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.ArrowDropDown,
+                                contentDescription = null,
+                                modifier = Modifier.clickable { groupSelectExpanded = !groupSelectExpanded }
+                            )
+                            DropdownMenu(
+                                expanded = groupSelectExpanded,
+                                onDismissRequest = { groupSelectExpanded = false },
+                            ) {
+                                groups.forEach { group ->
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            newGroup = group
+                                            groupSelectExpanded = false
+                                        },
+                                        text = { Text(group) }
+                                    )
+                                }
+                            }
+                        }
+                    )
+                }
                 Spacer(modifier = Modifier.height(8.dp))
                 TextField(
                     value = newLong.toString(),
@@ -265,6 +286,7 @@ fun EditDialog(
         confirmButton = {
             Button(
                 onClick = {
+                    //write edited item into updated item when confirm is clicked
                     val updatedItem = item.copy(name = newName, location = Location(newName).apply { latitude = newLat; longitude = newLong}, group = newGroup)
                     onConfirm(oldName, updatedItem)
                     onDismiss()

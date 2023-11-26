@@ -12,8 +12,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.mdproject.ui.theme.MDPROJECTTheme
-import com.example.mdproject.ui.theme.Map
-import com.example.mdproject.ui.theme.NavBar
 
 class MapActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)

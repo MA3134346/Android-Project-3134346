@@ -16,6 +16,10 @@ object WayPointManager {
     val waypoints: List<WayPoint>
         get() = _waypoints
 
+    //get all unique groups
+    val groups: List<String>
+        get() = waypoints.map { it.group }.toSet().toList()
+
     //add waypoint
     fun addWaypoint(waypoint: WayPoint) {
         _waypoints.add(waypoint)
@@ -31,4 +35,5 @@ object WayPointManager {
     fun deleteWayPoint(waypoint: WayPoint) {
         _waypoints.remove(waypoint)
     }
+
 }

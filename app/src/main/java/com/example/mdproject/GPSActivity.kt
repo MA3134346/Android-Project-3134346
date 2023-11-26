@@ -11,9 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import com.example.mdproject.ui.theme.GPS
 import com.example.mdproject.ui.theme.MDPROJECTTheme
-import com.example.mdproject.ui.theme.NavBar
 
 class GPSActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
