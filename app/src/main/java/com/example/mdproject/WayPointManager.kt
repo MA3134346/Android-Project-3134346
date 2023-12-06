@@ -1,7 +1,14 @@
 package com.example.mdproject
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.location.Location
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Bundle
 import androidx.compose.runtime.mutableStateListOf
+import androidx.core.content.ContextCompat
 
 data class WayPoint(var name: String, var location: Location, var group: String)
 object WayPointManager {
@@ -36,4 +43,29 @@ object WayPointManager {
         _waypoints.remove(waypoint)
     }
 
+    //get current location
+    fun getCurrentLocation(context: Context, callback: (Location?) -> Unit) {
+        val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        //permissions
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            callback(null)
+            return
+        }
+        //listener that responds to location updates
+        val locationListener = object : LocationListener {
+            override fun onLocationChanged(location: Location) {
+                //when a new location is found
+                callback(location)
+                //remove listener after update
+                locationManager.removeUpdates(this)
+            }
+            @Deprecated("Deprecated in Java")
+            override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
+            override fun onProviderEnabled(provider: String) {}
+            override fun onProviderDisabled(provider: String) {}
+        }
+        //register listener
+        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0L, 0f, locationListener)
+    }
 }
