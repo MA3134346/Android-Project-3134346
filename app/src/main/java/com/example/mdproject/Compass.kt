@@ -21,6 +21,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -119,40 +120,56 @@ fun rotationToObject(useTrueNorth: Boolean, targetObj: WayPoint?): Float {
     var rot by remember { mutableFloatStateOf(0f) }
     //get sensor manager instance
     val sensorManager: SensorManager = LocalContext.current.getSystemService(Context.SENSOR_SERVICE) as SensorManager
-    val currentLocation by remember { mutableStateOf(Location("test").apply { latitude = 53.330309; longitude = -6.278394 }) }
+
+    //observe the location using stateflow
+    val currentLocationFlow = observeLocation()
+    val currentLocation by currentLocationFlow.collectAsState()
+
     //sensor logic
     DisposableEffect(Unit) {
         val listener = object : SensorEventListener {
             override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 
             override fun onSensorChanged(event: SensorEvent) {
+                //array for rotation matrix
                 val rotationMatrix = FloatArray(9)
                 SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
 
+                //array for orientation
                 val orientationValues = FloatArray(3)
                 SensorManager.getOrientation(rotationMatrix, orientationValues)
 
+                //radians to degrees
                 val azimuth = Math.toDegrees(orientationValues[0].toDouble()).toFloat()
                 val adjustedAzimuth = if (azimuth < 0) azimuth + 360 else azimuth
 
+                //whether to use true north
                 rot = if (useTrueNorth) {
-                    adjustedAzimuth
+                    adjustedAzimuth //true north -> adjusted azimuth
                 } else {
                     targetObj?.location?.let { targetLocation ->
-                        (adjustedAzimuth - bearingToLocation(currentLocation, targetLocation) + 360) % 360
-                    } ?: adjustedAzimuth //if targetObj is null default to north
+                        //if target object is not null and has location
+                        currentLocation?.let {
+                            // if current location is not null
+                            (adjustedAzimuth - bearingToLocation(it, targetLocation) + 360) % 360
+                            //relative bearing from current to target locations
+                        } ?: adjustedAzimuth //default to north
+                    } ?: adjustedAzimuth //default to north
                 }
             }
         }
-        //register event listener and unregister since only 128 can be registered
+
+        //register event listener
         sensorManager.registerListener(
             listener,
             sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR),
             SensorManager.SENSOR_DELAY_NORMAL)
+
         onDispose {
             sensorManager.unregisterListener(listener)
         }
     }
+
     return rot
 }
 //figure out the degree towards waypoint from device location and target location
