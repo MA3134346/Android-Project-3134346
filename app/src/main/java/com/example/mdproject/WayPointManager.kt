@@ -12,17 +12,49 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import java.io.File
 
 data class WayPoint(var name: String, var location: Location, var group: String)
 object WayPointManager {
-    //list of waypoints for test purposes TODO: make it save/recover when app closes/opens
-    private val _waypoints = mutableStateListOf(
-        WayPoint("baghdad", Location("baghdad").apply { latitude = 37.7749; longitude = -122.4194 }, "Group1"),
-        WayPoint("timbuktu", Location("timbuktu").apply { latitude = 40.7128; longitude = -74.0060 }, "Group2"),
-        WayPoint("spar", Location("spar").apply { latitude = 53.331685; longitude = -6.278487 }, "Group3")
-    )
+    //list of waypoints
+    private val _waypoints = mutableStateListOf<WayPoint>()
+
+    private lateinit var file : File
+    private val gson = Gson()
+
+    fun initialize(context: Context) {
+        file = File(context.filesDir, "waypoints.json")
+        loadWaypoints()
+    }
+
+    //load waypoints from file
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun loadWaypoints() {
+        GlobalScope.launch {
+            if (!file.exists()) return@launch
+
+            val json = file.readText()
+            val type = object : TypeToken<List<WayPoint>>() {}.type
+            val loadedWaypoints: List<WayPoint> = gson.fromJson(json, type) ?: emptyList()
+            _waypoints.clear()
+            _waypoints.addAll(loadedWaypoints)
+        }
+    }
+
+    //save waypoints to file
+    private fun saveWaypoints() {
+        GlobalScope.launch {
+            val json = gson.toJson(_waypoints)
+            file.writeText(json)
+        }
+    }
 
     //retrieve waypoints
     val waypoints: List<WayPoint>
@@ -35,17 +67,20 @@ object WayPointManager {
     //add waypoint
     fun addWaypoint(waypoint: WayPoint) {
         _waypoints.add(waypoint)
+        saveWaypoints()
     }
     //update a waypoint
     fun updateWaypoint(oldName: String, updatedWaypoint: WayPoint) {
         val index = _waypoints.indexOfFirst { it.name == oldName }
         if (index != -1) {
             _waypoints[index] = updatedWaypoint
+            saveWaypoints()
         }
     }
     //delete a waypoint
     fun deleteWayPoint(waypoint: WayPoint) {
         _waypoints.remove(waypoint)
+        saveWaypoints()
     }
 }
 class LocationManager(context: Context) : ViewModel() {

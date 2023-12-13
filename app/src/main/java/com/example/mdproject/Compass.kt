@@ -41,10 +41,12 @@ import kotlin.math.sin
 @Preview(showBackground = true)
 @Composable
 fun Compass() {
+    //states for compass settings
     var useTrueNorth by remember { mutableStateOf(true) }
     var targetObj by remember { mutableStateOf(WayPoint("default", Location("default").apply { latitude = 37.7749; longitude = -122.4194 }, "default"))}
     val rot = rotationToObject(useTrueNorth, targetObj)
 
+    //main layout
     Column(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.SpaceBetween) {
         Row(
             modifier = Modifier
@@ -53,17 +55,19 @@ fun Compass() {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            //if switch useTrueNorth is on put North in target else selected waypoint
+            //compass target selector
             CompassTarget(if (useTrueNorth) "North" else targetObj.name, onTargetObjSelected = { selectedObj ->
                 targetObj = selectedObj
                 useTrueNorth = false
             })
+            //toggle north
             Switch(
                 checked = useTrueNorth,
                 onCheckedChange = { useTrueNorth = it },
                 modifier = Modifier.padding(8.dp)
             )
         }
+        //degree text
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -73,6 +77,7 @@ fun Compass() {
         ) {
             DegreeText(rot)
         }
+        //compass sprite
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -91,6 +96,7 @@ fun CompassTarget(target: String, onTargetObjSelected: (WayPoint) -> Unit){
         Column {
             Text(text = "Target: $target", modifier = Modifier.clickable { expanded = true })
         }
+        //select waypoints dropdown
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }
         ) {
             WayPointManager.waypoints.forEach { item ->
@@ -114,14 +120,14 @@ fun CompassSprite(rotation: Float) {
     )
 }
 
-//to figure out degrees to target
+//calculates rotation angle
 @Composable
 fun rotationToObject(useTrueNorth: Boolean, targetObj: WayPoint?): Float {
     var rot by remember { mutableFloatStateOf(0f) }
-    //get sensor manager instance
+    //sensor manager setup
     val sensorManager: SensorManager = LocalContext.current.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
-    //observe the location using stateflow
+    //location tracking
     val currentLocationFlow = observeLocation()
     val currentLocation by currentLocationFlow.collectAsState()
 
@@ -175,16 +181,20 @@ fun rotationToObject(useTrueNorth: Boolean, targetObj: WayPoint?): Float {
 //figure out the degree towards waypoint from device location and target location
 //Todo Debug
 fun bearingToLocation(currentLocation: Location, targetLocation: Location): Float {
+    //coordinates to radians
     val lat1 = Math.toRadians(currentLocation.latitude)
     val lon1 = Math.toRadians(currentLocation.longitude)
     val lat2 = Math.toRadians(targetLocation.latitude)
     val lon2 = Math.toRadians(targetLocation.longitude)
 
-    //math i got from stackoverflow and dont understand
+    //initial bearing between two points
+    //trigonometry stuff
     val x = sin(lon2 - lon1) * cos(lat2)
     val y = cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(lon2 - lon1)
 
+    //radians to degrees
     val initialBearing = Math.toDegrees(atan2(x, y)).toFloat()
 
+    //normalize between 0, 360
     return (initialBearing + 360) % 360
 }

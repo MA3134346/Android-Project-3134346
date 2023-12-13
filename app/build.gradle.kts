@@ -96,4 +96,7 @@ dependencies {
     implementation("androidx.compose.material:material:1.5.4")
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     implementation("org.osmdroid:osmdroid-android:6.1.10")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+    implementation("com.google.code.gson:gson:2.8.9")
+
 }

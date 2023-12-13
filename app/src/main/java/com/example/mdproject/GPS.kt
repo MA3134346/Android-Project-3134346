@@ -49,12 +49,11 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun GPS() {
-    //for floating action button
+    //states for dialog
     var showAddDialog by remember { mutableStateOf(false) }
-    //for editing a waypoint
     var editingItem by remember { mutableStateOf<WayPoint?>(null) }
 
-    //goes through the list of waypoints and shows them on screen
+    //display waypoints list
     Column {
         //header row
         Row(
@@ -68,11 +67,14 @@ fun GPS() {
             Text("Name", modifier = Modifier.weight(1f), fontWeight = FontWeight.Bold)
             Text("Group", modifier = Modifier.weight(1.1f), fontWeight = FontWeight.Bold)
         }
+        //list of waypoints
         LazyColumn {
             items(WayPointManager.waypoints) { item ->
-                //for editing and deleting
+                //states for dialog
                 var showMenu by remember { mutableStateOf(false) }
                 var showDeleteDialog by remember { mutableStateOf(false) }
+
+                //waypoint row
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -80,16 +82,13 @@ fun GPS() {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // waypoints name
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = item.name)
-                    }
-                    // waypoints group
-                    Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) {
-                        Text(text = item.group)
-                    }
+                    // Waypoint name and group
+                    Column(modifier = Modifier.weight(1f)) { Text(text = item.name) }
+                    Column(modifier = Modifier.weight(1f).padding(start = 16.dp)) { Text(text = item.group) }
+
                     //button for each of the entries
-                    Box { IconButton(onClick = { showMenu = !showMenu }) {
+                    Box {
+                        IconButton(onClick = { showMenu = !showMenu }) {
                             Icon(Icons.Default.MoreVert, contentDescription = "Menu")
                         }
                         //to select either delete or edit
@@ -127,7 +126,7 @@ fun GPS() {
             }
         }
     }
-    //when editingItem is set open EditDialog, when confirm is clicked overwrite waypoint
+    //edit dialog
     editingItem?.let { waypoint ->
         EditDialog(
             item = waypoint,
@@ -139,22 +138,17 @@ fun GPS() {
             }
         )
     }
-    //to add new entries
+    //fab to add new waypoints
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
         FloatingActionButton(
-            modifier = Modifier
-                .padding(16.dp)
-                .size(56.dp),
+            modifier = Modifier.padding(16.dp).size(56.dp),
             onClick = { showAddDialog = true },
             content = { Icon(Icons.Default.Add, contentDescription = "Add") }
         )
     }
-    if (showAddDialog) {
-        AddDialog() { showAddDialog = false }
-    }
-
+    if (showAddDialog) AddDialog { showAddDialog = false }
 }
-//dialog when adding new waypoint
+//add new waypoint dialog
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddDialog(onDismiss: () -> Unit) {
@@ -166,17 +160,9 @@ fun AddDialog(onDismiss: () -> Unit) {
         title = { Text(text = "Add Waypoint") },
         text = {
             Column {
-                TextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Name") }
-                )
+                TextField(value = name, onValueChange = { name = it }, label = { Text("Name") })
                 Spacer(modifier = Modifier.height(8.dp))
-                TextField(
-                    value = group,
-                    onValueChange = { group = it },
-                    label = { Text("Group") }
-                )
+                TextField(value = group, onValueChange = { group = it }, label = { Text("Group") })
             }
         },
         confirmButton = {
@@ -209,15 +195,11 @@ fun DeleteDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete Waypoint") },
         text = { Text("you sure?") },
-        confirmButton = {
-            Button(onClick = onConfirm) { Text("Yes") }
-        },
-        dismissButton = {
-            Button(onClick = onDismiss) { Text("No") }
-        }
+        confirmButton = { Button(onClick = onConfirm) { Text("Yes") } },
+        dismissButton = { Button(onClick = onDismiss) { Text("No") } }
     )
 }
-//dialog when editing item
+//edit waypoint dialog
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun EditDialog(item: WayPoint, onDismiss: () -> Unit, onConfirm: (String, WayPoint) -> Unit) {
@@ -230,14 +212,18 @@ fun EditDialog(item: WayPoint, onDismiss: () -> Unit, onConfirm: (String, WayPoi
     var groupSelectExpanded by remember { mutableStateOf(false) }
 
     AlertDialog(
-        onDismissRequest = onDismiss, title = { Text(text = "Edit Waypoint") }, text = {
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Edit Waypoint") },
+        text = {
             Column {
+                //editable fields
                 TextField(
                     value = newName,
                     onValueChange = { newName = it },
                     label = { Text("Name") }
                 )
                 Spacer(modifier = Modifier.height(8.dp))
+                //for existing groups
                 ExposedDropdownMenuBox(
                     expanded = groupSelectExpanded,
                     onExpandedChange = {groupSelectExpanded = !groupSelectExpanded})

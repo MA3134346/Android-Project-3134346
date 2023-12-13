@@ -16,6 +16,7 @@ import com.example.mdproject.ui.theme.MDPROJECTTheme
 class CompassActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
+        WayPointManager.initialize(this)
         super.onCreate(savedInstanceState)
         setContent {
             MDPROJECTTheme {

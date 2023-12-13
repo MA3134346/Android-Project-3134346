@@ -34,22 +34,26 @@ import org.osmdroid.views.overlay.Marker
 
 @Composable
 fun Map(){
+    //currently selected waypoint
     var selectedWaypoint by remember { mutableStateOf<WayPoint?>(null) }
     Column(modifier = Modifier.fillMaxSize()) {
+        //select menu
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f),
             contentAlignment = Alignment.Center
         ) {
+            //display select menu
             selectMenu(selectedWaypoint = selectedWaypoint) { waypoint ->
                 selectedWaypoint = waypoint //new waypoint is selected
             }
         }
-
+        //map
         Box(modifier = Modifier
             .fillMaxWidth()
             .weight(1.5f)) {
+            //display map with selected waypoint
             OsmMapView(selectedWaypoint)
         }
     }
@@ -57,20 +61,22 @@ fun Map(){
 
 @Composable
 fun selectMenu(selectedWaypoint: WayPoint?, onWaypointSelected: (WayPoint) -> Unit ) {
+    //dropdown states
     var selectedGroup by remember { mutableStateOf("") }
-    var expanded by remember { mutableStateOf(false) }
-
     var expandedGroup by remember { mutableStateOf(false) }
     var expandedWaypoint by remember { mutableStateOf(false) }
 
+    //data sources
     val groups = WayPointManager.groups
     val waypoints = WayPointManager.waypoints
 
+    //select menu
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        //group / waypoint select
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -80,6 +86,7 @@ fun selectMenu(selectedWaypoint: WayPoint?, onWaypointSelected: (WayPoint) -> Un
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
+            //group select button / dropdown
             Box {
                 Button(onClick = { expandedGroup = true }) {
                     Text("Select group")
@@ -97,6 +104,7 @@ fun selectMenu(selectedWaypoint: WayPoint?, onWaypointSelected: (WayPoint) -> Un
                 }
             }
 
+            //waypoint select button / dropdown
             Box {
                 Button(onClick = { expandedWaypoint = true }) {
                     Text("Select waypoint")
@@ -114,6 +122,7 @@ fun selectMenu(selectedWaypoint: WayPoint?, onWaypointSelected: (WayPoint) -> Un
                 }
             }
 
+            //selected group and waypoint
             Text("Currently selected group: $selectedGroup")
             selectedWaypoint?.let {
                 Text("Currently selected waypoint: ${it.name}")
@@ -123,27 +132,30 @@ fun selectMenu(selectedWaypoint: WayPoint?, onWaypointSelected: (WayPoint) -> Un
 }
 @Composable
 fun OsmMapView(selectedWaypoint: WayPoint?) {
+    //context for osm configuration
     val context = LocalContext.current
 
+    //load osm preferences
     Configuration.getInstance().load(context, context.getSharedPreferences("osm_pref", Context.MODE_PRIVATE))
 
-    //android-view for map
+    //create and configure map view
     AndroidView(factory = { ctx ->
         MapView(ctx).apply {
             setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(true)
             controller.setZoom(15.5)
+            controller.setCenter(GeoPoint(53.3498, -6.2603))
+
         }
     }, update = { mapView ->
-        mapView.overlays.clear() // clear other waypoints
+        mapView.overlays.clear() //clear other waypoints
 
         //add a marker to the map
         selectedWaypoint?.let { waypoint ->
             val mapController = mapView.controller
             val waypointGeoPoint = GeoPoint(waypoint.location.latitude, waypoint.location.longitude)
 
-            //center to waypoint
-            mapController.setCenter(waypointGeoPoint)
+            mapController.setCenter(waypointGeoPoint)//center to waypoint
 
             //add marker to overlay
             val marker = Marker(mapView)
