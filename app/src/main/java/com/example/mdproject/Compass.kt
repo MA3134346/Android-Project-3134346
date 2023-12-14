@@ -56,14 +56,15 @@ fun Compass() {
             horizontalArrangement = Arrangement.Center
         ) {
             //compass target selector
-            CompassTarget(if (useTrueNorth) "North" else targetObj.name, onTargetObjSelected = { selectedObj ->
+            CompassTarget(if (useTrueNorth) "North" else targetObj.name,
+                onTargetObjSelected = { selectedObj ->
                 targetObj = selectedObj
                 useTrueNorth = false
             })
             //toggle north
             Switch(
                 checked = useTrueNorth,
-                onCheckedChange = { useTrueNorth = it },
+                onCheckedChange = { useTrueNorth = it  },
                 modifier = Modifier.padding(8.dp)
             )
         }
@@ -99,8 +100,8 @@ fun CompassTarget(target: String, onTargetObjSelected: (WayPoint) -> Unit){
         //select waypoints dropdown
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }
         ) {
-            WayPointManager.waypoints.forEach { item ->
-                DropdownMenuItem(text = { Text(item.name)}, onClick = {onTargetObjSelected(item)})}
+            WayPointManager.waypoints.forEach { waypoint ->
+                DropdownMenuItem(text = { Text(waypoint.name)}, onClick = {onTargetObjSelected(waypoint)})}
         }
     }
 }
@@ -128,8 +129,7 @@ fun rotationToObject(useTrueNorth: Boolean, targetObj: WayPoint?): Float {
     val sensorManager: SensorManager = LocalContext.current.getSystemService(Context.SENSOR_SERVICE) as SensorManager
 
     //location tracking
-    val currentLocationFlow = observeLocation()
-    val currentLocation by currentLocationFlow.collectAsState()
+    val currentLocation by observeLocation().collectAsState()
 
     //sensor logic
     DisposableEffect(Unit) {

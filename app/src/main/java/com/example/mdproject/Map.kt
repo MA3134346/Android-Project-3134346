@@ -15,6 +15,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -138,13 +139,17 @@ fun OsmMapView(selectedWaypoint: WayPoint?) {
     //load osm preferences
     Configuration.getInstance().load(context, context.getSharedPreferences("osm_pref", Context.MODE_PRIVATE))
 
+    val currentLocationFlow = observeLocation()
+    val currentLocation by currentLocationFlow.collectAsState()
+
     //create and configure map view
     AndroidView(factory = { ctx ->
         MapView(ctx).apply {
             setTileSource(TileSourceFactory.MAPNIK)
             setMultiTouchControls(true)
             controller.setZoom(15.5)
-            controller.setCenter(GeoPoint(53.3498, -6.2603))
+            controller.setCenter(currentLocation?.let { GeoPoint(it.latitude, it.longitude) })
+            println(currentLocation.toString())
 
         }
     }, update = { mapView ->

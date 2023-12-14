@@ -10,9 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModel
-import com.google.gson.Gson
+import androidx.core.content.ContextCompat import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -83,7 +81,7 @@ object WayPointManager {
         saveWaypoints()
     }
 }
-class LocationManager(context: Context) : ViewModel() {
+class LocationManager(context: Context) {
     private val _currentLocation = MutableStateFlow<Location?>(null)
     //expose current location state
     val currentLocation: StateFlow<Location?> = _currentLocation

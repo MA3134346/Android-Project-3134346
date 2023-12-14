@@ -14,7 +14,7 @@ sealed class NavBarContents(val title: String, val icon: ImageVector){
         title = "Map", icon = Icons.Default.Place
     )
     object Gps : NavBarContents(
-        title = "Gps", icon = Icons.Default.Menu
+        title = "Waypoints", icon = Icons.Default.Menu
     )
 
 }
